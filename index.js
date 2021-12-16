@@ -70,6 +70,24 @@ async function run() {
       const result = await orderCollection.insertOne(req.body);
       console.log(result);
     });
+    app.put("/order", async (req, res) => {
+      const find = await orderCollection.findOne({
+        _id: ObjectID(req?.body?._id),
+      });
+
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: {
+          orderName: req.body.orderName,
+          orderEmail: req.body.orderEmail,
+          orderPhone: req.body.orderPhone,
+          orderAddress: req.body.orderAddress,
+          orderPostalCode: req.body.orderPostalCode,
+        },
+      };
+      const result = await orderCollection.updateOne(find, updateDoc, options);
+      console.log(result);
+    });
     app.get("/order/:email", async (req, res) => {
       const result = await orderCollection.findOne({ email: req.params.email });
       res.json(result);
