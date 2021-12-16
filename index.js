@@ -55,7 +55,13 @@ async function run() {
       }
     });
 
-    app.get("/myCart", async (req, res) => {
+    app.get("/myCart/:emil", async (req, res) => {
+      const result = await cartCollection
+        .find({ email: req.params.emil })
+        .toArray();
+      res.json(result);
+    });
+    app.get("/allCart", async (req, res) => {
       const result = await cartCollection.find({}).toArray();
       res.json(result);
     });
