@@ -35,37 +35,6 @@ async function run() {
       res.json(result);
     });
 
-    // app.post("/addToCart", async (req, res) => {
-    //   const find = await cartCollection.findOne({
-    //     _id: req?.body?._id,
-    //   });
-    //   if (!find) {
-    //     const result = await cartCollection.insertOne(req.body);
-    //     res.json(result);
-    //   } else {
-    //     const quantity = find.quantity;
-    //     const options = { upsert: true };
-    //     const updateDoc = {
-    //       $set: {
-    //         quantity: parseInt(quantity) + 1,
-    //       },
-    //     };
-    //     const result = await cartCollection.updateOne(find, updateDoc, options);
-    //     res.json(result);
-    //   }
-    // });
-
-    // app.get("/myCart/:emil", async (req, res) => {
-    //   const result = await cartCollection
-    //     .find({ email: req.params.emil })
-    //     .toArray();
-    //   res.json(result);
-    // });
-    // app.get("/allCart", async (req, res) => {
-    //   const result = await cartCollection.find({}).toArray();
-    //   res.json(result);
-    // });
-
     app.post("/order", async (req, res) => {
       const result = await orderCollection.insertOne(req.body);
       console.log(result);
