@@ -6,6 +6,7 @@ const ObjectID = require("mongodb").ObjectId;
 const { json } = require("express/lib/response");
 const app = express();
 const port = process.env.PORT || 5000;
+const stripe = require("stripe")(process.env.STRIPE_SECRET);
 
 // middleware
 app.use(cors());
@@ -37,7 +38,7 @@ async function run() {
 
     app.post("/order", async (req, res) => {
       const result = await orderCollection.insertOne(req.body);
-      console.log(result);
+      res.json(result);
     });
     app.put("/order", async (req, res) => {
       const find = await orderCollection.findOne({
@@ -51,15 +52,39 @@ async function run() {
           orderEmail: req.body.orderEmail,
           orderPhone: req.body.orderPhone,
           orderAddress: req.body.orderAddress,
+          orderCity: req.body.orderCity,
           orderPostalCode: req.body.orderPostalCode,
+          totalShoppingCost: req.body.totalShoppingCost,
+          payment: "unPaid",
         },
       };
       const result = await orderCollection.updateOne(find, updateDoc, options);
-      console.log(result);
-    });
-    app.get("/order/:email", async (req, res) => {
-      const result = await orderCollection.findOne({ email: req.params.email });
       res.json(result);
+    });
+
+    app.get("/order/:id", async (req, res) => {
+      const result = await orderCollection.findOne({
+        _id: ObjectID(req.params.id),
+      });
+      console.log(result);
+      res.json(result);
+    });
+
+    // payment
+    app.post("/create-payment-intent", async (req, res) => {
+      const paymentInfo = req.body.totalShoppingCost;
+      const amount = paymentInfo * 100;
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: "usd",
+        automatic_payment_methods: {
+          enabled: true,
+        },
+      });
+
+      res.json({
+        clientSecret: paymentIntent.client_secret,
+      });
     });
   } finally {
     // await client.close();
