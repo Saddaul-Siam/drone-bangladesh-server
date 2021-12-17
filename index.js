@@ -44,8 +44,7 @@ async function run() {
       const find = await orderCollection.findOne({
         _id: ObjectID(req?.body?._id),
       });
-
-      const options = { upsert: true };
+      const payment = req.body.payment;
       const updateDoc = {
         $set: {
           orderName: req.body.orderName,
@@ -55,10 +54,22 @@ async function run() {
           orderCity: req.body.orderCity,
           orderPostalCode: req.body.orderPostalCode,
           totalShoppingCost: req.body.totalShoppingCost,
-          payment: "unPaid",
         },
       };
-      const result = await orderCollection.updateOne(find, updateDoc, options);
+      const result = await orderCollection.updateOne(find, updateDoc);
+      res.json(result);
+    });
+
+    app.put("/payment/:id", async (req, res) => {
+      const find = await orderCollection.findOne({
+        _id: ObjectID(req?.params?.id),
+      });
+      const payment = req.body;
+      const updateDoc = {
+        $set: { payment: payment },
+      };
+      const result = await orderCollection.updateOne(find, updateDoc);
+      console.log(result);
       res.json(result);
     });
 
@@ -66,7 +77,7 @@ async function run() {
       const result = await orderCollection.findOne({
         _id: ObjectID(req.params.id),
       });
-      console.log(result);
+      // console.log(result);
       res.json(result);
     });
 
