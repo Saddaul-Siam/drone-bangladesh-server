@@ -86,18 +86,6 @@ async function run() {
       res.json(result);
     });
 
-    app.put("/payment/:id", async (req, res) => {
-      const find = await orderCollection.findOne({
-        _id: ObjectID(req?.params?.id),
-      });
-      const payment = req.body;
-      const updateDoc = {
-        $set: { payment: payment },
-      };
-      const result = await orderCollection.updateOne(find, updateDoc);
-      res.json(result);
-    });
-
     app.get("/order/:id", async (req, res) => {
       const result = await orderCollection.findOne({
         _id: ObjectID(req.params.id),
@@ -118,6 +106,11 @@ async function run() {
       res.json(result);
     });
 
+    app.get("/allOrders", async (req, res) => {
+      const result = await orderCollection.find({}).toArray();
+      res.json(result);
+    });
+
     // payment
     app.post("/create-payment-intent", async (req, res) => {
       const paymentInfo = req.body.totalShoppingCost;
@@ -134,7 +127,17 @@ async function run() {
         clientSecret: paymentIntent.client_secret,
       });
     });
-
+    app.put("/payment/:id", async (req, res) => {
+      const find = await orderCollection.findOne({
+        _id: ObjectID(req?.params?.id),
+      });
+      const payment = req.body;
+      const updateDoc = {
+        $set: { payment: payment },
+      };
+      const result = await orderCollection.updateOne(find, updateDoc);
+      res.json(result);
+    });
     //////////////////////////// User section ////////////////////////////////////
 
     app.post("/users", async (req, res) => {
