@@ -1,5 +1,5 @@
 const express = require("express");
-var cors = require("cors");
+const cors = require("cors");
 const { MongoClient } = require("mongodb");
 require("dotenv").config();
 const ObjectID = require("mongodb").ObjectId;
@@ -7,12 +7,13 @@ const { json } = require("express/lib/response");
 const app = express();
 const port = process.env.PORT || 5000;
 const stripe = require("stripe")(process.env.STRIPE_SECRET);
+const admin = require("firebase-admin");
 
-// const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+const serviceAccount = require("./drone-bangladesh-firebase-adminsdk.json");
 
-// admin.initializeApp({
-//   credential: admin.credential.cert(serviceAccount)
-// });
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
 
 // middleware
 app.use(cors());
@@ -23,19 +24,17 @@ const client = new MongoClient(uri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
-// async function verifyToken(req, res, next) {
-//   if (req.headers?.authorization?.startsWith('Bearer ')) {
-//     const token = req.headers.authorization.split(' ')[1];
+async function verifyToken(req, res, next) {
+  if (req.headers?.authorization?.startsWith("Bearer ")) {
+    const token = req.headers.authorization.split(" ")[1];
 
-//     try {
-//       const decodedUser = await admin.auth().verifyIdToken(token);
-//       req.decodedEmail = decodedUser.email;
-//     }
-//     catch {
-//     }
-//   }
-//   next();
-// }
+    try {
+      const decodedUser = await admin.auth().verifyIdToken(token);
+      req.decodedEmail = decodedUser.email;
+    } catch {}
+  }
+  next();
+}
 
 async function run() {
   try {
@@ -46,9 +45,8 @@ async function run() {
     const orderCollection = database.collection("order");
     const usersCollection = database.collection("users");
 
-    app.post("/addProducts", async (req, res) => {
+    app.post("/addProducts", verifyToken, async (req, res) => {
       const result = await productsCollection.insertOne(req.body);
-      console.log(result);
       res.json(result);
     });
 
@@ -63,6 +61,12 @@ async function run() {
       res.json(result);
     });
 
+    app.delete("/deleteProducts/:id", verifyToken, async (req, res) => {
+      const result = await productsCollection.deleteOne({
+        _id: ObjectID(req?.params?.id),
+      });
+      res.json(result);
+    });
     app.post("/order", async (req, res) => {
       const result = await orderCollection.insertOne(req.body);
       res.json(result);
@@ -99,7 +103,7 @@ async function run() {
       res.json(result);
     });
 
-    app.delete("/order/:id", async (req, res) => {
+    app.delete("/order/:id", verifyToken, async (req, res) => {
       const result = await orderCollection.deleteOne({
         _id: ObjectID(req.params.id),
       });
@@ -159,33 +163,36 @@ async function run() {
       res.json(result);
     });
 
-    // app.put('/users/admin', /* verifyToken, */ async (req, res) => {
-    //   const user = req.body;
-    //   const requester = req.decodedEmail;
-    //   if (requester) {
-    //     const requesterAccount = await usersCollection.findOne({ email: requester });
-    //     if (requesterAccount.role === 'admin') {
-    //       const filter = { email: user.email };
-    //       const updateDoc = { $set: { role: 'admin' } };
-    //       const result = await usersCollection.updateOne(filter, updateDoc);
-    //       res.json(result)
-    //     }
-    //   }
-    //   else {
-    //     res.status(403).json({ message: 'you do not have access to make admin' })
-    //   }
-    // });
+    app.put("/users/admin", verifyToken, async (req, res) => {
+      const user = req.body;
+      const requester = req.decodedEmail;
+      if (requester) {
+        const requesterAccount = await usersCollection.findOne({
+          email: requester,
+        });
+        if (requesterAccount.role === "admin") {
+          const filter = { email: user.email };
+          const updateDoc = { $set: { role: "admin" } };
+          const result = await usersCollection.updateOne(filter, updateDoc);
+          res.json(result);
+        }
+      } else {
+        res
+          .status(403)
+          .json({ message: "you do not have access to make admin" });
+      }
+    });
 
-    // app.get('/users/:email', async (req, res) => {
-    //   const email = req.params.email;
-    //   const query = { email: email };
-    //   const user = await usersCollection.findOne(query);
-    //   let isAdmin = false;
-    //   if (user?.role === 'admin') {
-    //     isAdmin = true;
-    //   }
-    //   res.json({ admin: isAdmin });
-    // });
+    app.get("/users/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const user = await usersCollection.findOne(query);
+      let isAdmin = false;
+      if (user?.role === "admin") {
+        isAdmin = true;
+      }
+      res.json({ admin: isAdmin });
+    });
 
     //////////////////////////// User section ////////////////////////////////////
   } finally {
