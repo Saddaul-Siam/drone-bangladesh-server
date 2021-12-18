@@ -9,7 +9,7 @@ const port = process.env.PORT || 5000;
 const stripe = require("stripe")(process.env.STRIPE_SECRET);
 const admin = require("firebase-admin");
 
-const serviceAccount = require("./drone-bangladesh-firebase-adminsdk.json");
+const serviceAccount = JSON.parse(process.env.FIREBASE_ADMIN_DK);
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
