@@ -44,6 +44,7 @@ async function run() {
     const productsCollection = database.collection("products");
     const orderCollection = database.collection("order");
     const usersCollection = database.collection("users");
+    const reviewCollection = database.collection("review");
 
     app.post("/addProducts", verifyToken, async (req, res) => {
       const result = await productsCollection.insertOne(req.body);
@@ -195,6 +196,11 @@ async function run() {
     });
 
     //////////////////////////// User section ////////////////////////////////////
+
+    app.post("/addReview", async (req, res) => {
+      const result = await reviewCollection.insertOne(req.body);
+      res.json(result);
+    });
   } finally {
     // await client.close();
   }
