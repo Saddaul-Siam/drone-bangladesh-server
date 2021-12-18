@@ -201,10 +201,27 @@ async function run() {
       const result = await reviewCollection.insertOne(req.body);
       res.json(result);
     });
-    app.get("/reviews", async (req, res) => {
-      const result = await reviewCollection.insertOne(req.body);
-      res.json(result);
+
+    app.get('/reviews', async (req, res) => {
+      const cursor = reviewCollection.find({});
+      const page = req.query.page;
+      const size = parseInt(req.query.size);
+      let reviews;
+      const count = await cursor.count();
+
+      if (page) {
+        reviews = await cursor.skip(page * size).limit(size).toArray();
+      }
+      else {
+        reviews = await cursor.toArray();
+      }
+
+      res.send({
+        count,
+        reviews
+      });
     });
+    
   } finally {
     // await client.close();
   }
