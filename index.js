@@ -201,6 +201,10 @@ async function run() {
       const result = await reviewCollection.insertOne(req.body);
       res.json(result);
     });
+    app.get("/reviews", async (req, res) => {
+      const result = await reviewCollection.insertOne(req.body);
+      res.json(result);
+    });
   } finally {
     // await client.close();
   }
