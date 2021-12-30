@@ -243,7 +243,7 @@ async function run() {
         total_amount: req.body.totalShoppingCost,
         currency: "USD",
         tran_id: uuidv4(),
-        success_url: "https://glacial-earth-17759.herokuapp.com/success",
+        success_url: "/success",
         fail_url: "https://glacial-earth-17759.herokuapp.com/fail",
         cancel_url: "https://glacial-earth-17759.herokuapp.com/cancel",
         ipn_url: "https://glacial-earth-17759.herokuapp.com/ipn",
